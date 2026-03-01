@@ -1,4 +1,14 @@
-FROM nginx:alpine
-COPY . /usr/share/nginx/html
-RUN sed -i 's/listen\s*80;/listen 8080;/g' /etc/nginx/conf.d/default.conf
-EXPOSE 8080
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install dependencies
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application
+COPY backend/ ./backend/
+COPY frontend/ ./frontend/
+
+# Run with gunicorn
+CMD gunicorn --bind 0.0.0.0:$PORT --chdir backend app:app

@@ -164,26 +164,40 @@ function initQuoteForm() {
             return;
         }
 
-        // Collect form data
+        // Submit to backend
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Sending...';
+
         const formData = new FormData(form);
-        const data = {};
-        formData.forEach((value, key) => {
-            data[key] = value;
+
+        fetch('/submit', {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' },
+            body: formData
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(result) {
+            if (result.success) {
+                form.classList.add('hidden');
+                if (formSuccess) formSuccess.classList.add('show');
+            } else {
+                var errorField = result.error && result.error.includes('phone') ? form.querySelector('#phone') : null;
+                if (errorField) {
+                    showError(errorField, result.error);
+                } else {
+                    alert(result.error || 'Something went wrong. Please try again.');
+                }
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        })
+        .catch(function() {
+            alert('Something went wrong. Please try again.');
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
         });
-
-        // Store in localStorage (for demo purposes)
-        const submissions = JSON.parse(localStorage.getItem('quoteSubmissions') || '[]');
-        submissions.push({
-            ...data,
-            timestamp: new Date().toISOString()
-        });
-        localStorage.setItem('quoteSubmissions', JSON.stringify(submissions));
-
-        // Show success message
-        form.classList.add('hidden');
-        if (formSuccess) formSuccess.classList.add('show');
-
-        console.log('Form Submitted:', data);
     });
 
     // Real-time validation
