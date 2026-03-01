@@ -91,14 +91,12 @@ def static_files(path):
 
 @app.after_request
 def cache_bust_html(response):
-    try:
-        if response.content_type and 'text/html' in response.content_type:
-            data = response.get_data(as_text=True)
-            data = data.replace('.js"', f'.js?v={DEPLOY_VERSION}"')
-            data = data.replace('.css"', f'.css?v={DEPLOY_VERSION}"')
-            response.set_data(data)
-    except Exception:
-        pass
+    if response.content_type and 'text/html' in response.content_type:
+        response.direct_passthrough = False
+        data = response.get_data(as_text=True)
+        data = data.replace('.js"', f'.js?v={DEPLOY_VERSION}"')
+        data = data.replace('.css"', f'.css?v={DEPLOY_VERSION}"')
+        response.set_data(data)
     return response
 
 
