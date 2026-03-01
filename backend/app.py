@@ -96,6 +96,20 @@ def submit_form():
         grade = data.get('grade', '')
         message = data.get('message', '')
 
+        # Validate required fields
+        if not full_name or full_name == 'N/A':
+            if request.headers.get('Accept') == 'application/json':
+                return jsonify({"error": "Name is required"}), 400
+            return redirect('/contact.html')
+        if not email or '@' not in email:
+            if request.headers.get('Accept') == 'application/json':
+                return jsonify({"error": "A valid email is required"}), 400
+            return redirect('/contact.html')
+        if not message.strip():
+            if request.headers.get('Accept') == 'application/json':
+                return jsonify({"error": "Message is required"}), 400
+            return redirect('/contact.html')
+
         # Validate phone number (optional field on contact form)
         phone = ''
         if phone_raw.strip():
